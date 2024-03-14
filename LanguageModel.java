@@ -3,7 +3,7 @@ import java.util.Random;
 
 public class LanguageModel {
 
-    // The map of this model.
+    // The map of this model
     // Maps windows to lists of charachter data objects.
     HashMap<String, List> CharDataMap;
     
