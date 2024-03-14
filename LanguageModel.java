@@ -30,33 +30,92 @@ public class LanguageModel {
         randomGenerator = new Random();
         CharDataMap = new HashMap<String, List>();
     }
-
     /** Builds a language model from the text in the given file (the corpus). */
 	public void train(String fileName) {
-		// Your code goes here
-	}
+        char chr;
+        StringBuilder strb = new StringBuilder();
+        In txt = new In(fileName);
+        for (int i = 0; i < windowLength; i=i+1) {
+            strb.append(txt.readChar());
+        }
+        while (txt.isEmpty()==false) {
+            chr = txt.readChar();
+            List newlist = CharDataMap.get(strb.toString());
+            if (newlist == null)
+            {
+                newlist = new List();
+                CharDataMap.put(strb.toString(),newlist);
+            }
+                newlist.update(chr);
+                strb.append(chr);
+                strb = new StringBuilder(strb.substring(1));
+            }
+        for (List probs : CharDataMap.values()) {
+            calculateProbabilities(probs);
+        }
+        }
+
 
     // Computes and sets the probabilities (p and cp fields) of all the
 	// characters in the given list. */
-	public void calculateProbabilities(List probs) {				
-		// Your code goes here
+	public  void calculateProbabilities(List probs) {
+		int count = 0;
+        double cp = 0;
+        for (int i = 0; i < probs.getSize(); i= i+1){
+            count += probs.get(i).count;
+        }
+        for (int i = 0; i < probs.getSize(); i= i+1) {
+            probs.get(i).p = (double) ((double) probs.get(i).count) /((double) count);
+            probs.get(i).cp = cp + probs.get(i).p;
+            cp = probs.get(i).cp;
+        }
 	}
 
     // Returns a random character from the given probabilities list.
 	public char getRandomChar(List probs) {
-		// Your code goes here
-	}
+        char rndchr;
+        double rnddbl = randomGenerator.nextDouble();
+
+        for (int i = 0; i < probs.getSize(); i= i+1)
+        {
+            if (probs.get(i).cp > rnddbl) 
+            {
+                rndchr = probs.get(i).chr;
+                return rndchr;
+            }
+            else continue;
+        }
+        return ' '; 
+    }
+
 
     /**
 	 * Generates a random text, based on the probabilities that were learned during training. 
 	 * @param initialText - text to start with. If initialText's last substring of size numberOfLetters
 	 * doesn't appear as a key in Map, we generate no text and return only the initial text. 
-	 * @param numberOfLetters - the size of text to generate
+	 * @param textLength - the size of text to generate
 	 * @return the generated text
 	 */
 	public String generate(String initialText, int textLength) {
-		// Your code goes here
-	}
+        if(initialText.length() < windowLength) return initialText;
+        
+        StringBuilder preresult = new StringBuilder(initialText.substring(initialText.length() - windowLength));
+        StringBuilder result = preresult;
+
+        while (result.length() < (textLength + windowLength)){
+            List currentList = CharDataMap.get(preresult.toString());
+            if (currentList == null) break;
+            else
+            {
+                result.append(getRandomChar(currentList));
+                preresult = new StringBuilder(result.substring(result.length() - windowLength));
+            }
+        }
+        String result1 = result.toString();
+        return result1;
+        
+        }
+	
 
     /** Returns a string representing the map of this language model. */
 	public String toString() {
@@ -69,6 +128,6 @@ public class LanguageModel {
 	}
 
     public static void main(String[] args) {
-		// Your code goes here
+
     }
 }
